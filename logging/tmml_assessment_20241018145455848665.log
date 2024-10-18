@@ -1,0 +1,14 @@
+2024-10-18 14:54:55 - INFO - job started
+2024-10-18 14:54:59 - INFO - Successfully read the input file i.e., accounts
+2024-10-18 14:54:59 - INFO - Successfully read the input file i.e., customers
+2024-10-18 14:54:59 - INFO - Successfully read the input file i.e., transactions
+2024-10-18 14:55:04 - INFO - Total 11 rows containing null values and cleared in the return dataset i.e., accounts
+2024-10-18 14:55:05 - INFO - Total 5 rows containing null values and cleared in the return dataset i.e., customers
+2024-10-18 14:55:06 - INFO - Total 69 rows containing null values and cleared in the return dataset i.e., transactions
+2024-10-18 14:55:10 - INFO - Successfully load the data for output file i.e., totalWithdrawal
+2024-10-18 14:55:11 - INFO - Successfully load the data for output file i.e., totalWithDeposit
+2024-10-18 14:55:13 - INFO - Successfully load the data for output file i.e., totalBalance
+2024-10-18 14:55:14 - INFO - Successfully load the data for output file i.e., avgTransactionAmount
+2024-10-18 14:55:15 - INFO - Successfully load the data for output file i.e., enrichedClassifiedTransaction
+2024-10-18 14:55:16 - INFO - Successfully load the data for output file i.e., enrichedTransactionCountPerWeek
+2024-10-18 14:55:18 - INFO - job done

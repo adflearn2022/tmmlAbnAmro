@@ -1,0 +1,6 @@
+{
+    "execute": {
+      "Run": "cd /home/user/data/ && python tmmlAbnAmro.py"
+    },
+    "default_file": "tmmlAbnAmro.py"
+}
