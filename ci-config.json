@@ -1,6 +1,6 @@
 {
     "execute": {
-      "Run": "cd /home/user/data/ && python tmmlAbnAmro.py"
+      "Run": "cd /home/user/data/ && python tmmlAssesmentMain.py"
     },
-    "default_file": "tmmlAbnAmro.py"
+    "default_file": "tmmlAssesmentMain.py"
 }
