@@ -6,6 +6,7 @@ from actionUtils import actionUtils
 from transformationUtils import transformationUtils
 from transactionProcessor import transactionProcessor
 import pytest
+from deltalake import DeltaTable
  
 
 def testCase():
@@ -31,6 +32,11 @@ def testCase():
   
   #case 3:- Using read utility function check data ingested from an input source to the dataframe using pandas along with logging details by using the src config properties.
   df_acnt =  readUtils.readSrcAsPdAndReturnAsDf(spark,src_config['basepath'], "accounts", src_config['type'],logging)
+  #check if dataframe is not empty
+  assert df_acnt.count() > 0, "DataFrame is empty"
+  #check schema of the dataframe
+  expected_columns = ["account_id","customer_id","account_type","balance"]
+  assert df_acnt.columns == expected_columns, f"Expected columns {expected_columns} but got {df_acnt.columns}"
   
   def test_dataframes_are_equal_with_exception(df_expect,df_input):
     try:
@@ -84,6 +90,11 @@ def testCase():
   #case7:- Using action utility write the required dataset into the specific format into the specific target location i.e., from the target config details from the config json 
   #       check error handling and logging has been captured properly
   actionUtils.writeOutputFile(spark,df_trans_jn_acnt,tgt_config['basepath'],tgt_config['loadMode'],"DummyTransaction",tgt_config['type'],logging)
+
+  delta_table = DeltaTable(table_uri=tgt_config['basepath']+"DummyTransaction").to_pandas()
+  df_tgt = spark.createDataFrame(delta_table)
+  df_tgt_upd = transformationUtils().replaceNanToNullValues(df_tgt)
+  assert df_tgt_upd.count() > 0, "DataFrame is empty"
   
   spark.stop()
  
