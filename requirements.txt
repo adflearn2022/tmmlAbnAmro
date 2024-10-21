@@ -25,3 +25,4 @@ urllib3==1.25.8
 Faker==30.0.0
 ruff==0.6.8
 deltalake==0.20.2
+pytest==7.1.3

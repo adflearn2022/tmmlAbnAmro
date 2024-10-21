@@ -5,9 +5,11 @@ from readUtils import readUtils
 from actionUtils import actionUtils
 from transformationUtils import transformationUtils
 from transactionProcessor import transactionProcessor
+import pytest
+ 
 
 def testCase():
-  
+
   spark = SparkSession.builder \
     .appName("testTransactionProcessor") \
     .getOrCreate()
@@ -24,27 +26,44 @@ def testCase():
   
   #case 2:-  Using logging utiliy function, Configure the logging properties and 
   #           check the logging folder and files created dynamically based upon the session time along with the logging details 
-  print("*******configure logging properties*************")
   logging = utils.logging(datetime, log_config['basepath'], log_config['logFileName'])
   logging.info("job started")
   
-  print("********read src**********")
   #case 3:- Using read utility function check data ingested from an input source to the dataframe using pandas along with logging details by using the src config properties.
   df_acnt =  readUtils.readSrcAsPdAndReturnAsDf(spark,src_config['basepath'], "accounts", src_config['type'],logging)
-  df_acnt.show()
   
-  print("replaceNanToNullValues")
+  def test_dataframes_are_equal_with_exception(df_expect,df_input):
+    try:
+      assert df_expect.exceptAll(df_input).isEmpty()
+      assert df_input.exceptAll(df_expect).isEmpty()
+    except AssertionError as e:
+      pytest.fail("Dataframes are not equal -->> " + str(e))
+      
+  df_case4_expected = spark.createDataFrame(data=[
+    ("acc_01","cust_01","checking",65.56),
+    ("acc_02","cust_02","checking",48.38),
+    ("acc_03","cust_01","savings",None),
+    ("acc_04",None,"savings",47.11)], schema=["account_id","customer_id","account_type","balance"])
   #case 4:- Using transform replaceNanToNullValues utility function and check the NaN values to be replaced to null values.FileExistsError
   df_nan_null = transformationUtils().replaceNanToNullValues(df_acnt)
-  df_nan_null.show()
+  test_dataframes_are_equal_with_exception(df_case4_expected,df_nan_null)
   
-  print("dropNullValuesAndReturnDf")
+  df_case5_expected = spark.createDataFrame(data=[
+    ("acc_01","cust_01","checking",65.56),
+    ("acc_02","cust_02","checking",48.38)], schema=["account_id","customer_id","account_type","balance"])
   #case5:- Using transform dropNullValuesAndReturnDf Utility function and check all the rows conatining nulls to be dropped/cleared
   #        Also logged the total row count values for a dataset i.e., dropped/cleared 
   df_dropNull = transformationUtils().dropNullValuesAndReturnDf(df_acnt,"account", logging)
-  df_dropNull.show()
+  test_dataframes_are_equal_with_exception(df_case5_expected,df_dropNull)
   
-  print("Generic Joiner Transformation")
+  df_case6_expected = spark.createDataFrame(data=[
+    (1,"acc_01","2024-07-05",28.89,"deposit","cust_01","checking",65.56),
+    (2,"acc_02","2024-01-11",35.75,"withdrawal","cust_02","checking",48.38),
+    (5,"acc_01","2024-07-28",87.48,"withdrawal","cust_01","checking",65.56),
+    (6,"acc_02","2024-03-06",77.63,"deposit","cust_02","checking",48.38),
+    (9,"acc_01","2024-01-08",75.04,"deposit","cust_01","checking",65.56)], 
+    schema=["transaction_id","account_id","transaction_date","amount","transaction_type","customer_id","account_type","balance"])
+    
   #case6:- Using transform joinTransformation Utility function and check datassets has been merged properly using the required parameters
   #       parameter details
   """
@@ -60,17 +79,14 @@ def testCase():
   df_trans = transformationUtils().dropNullValuesAndReturnDf(df_trans,"account", logging)
   df_trans_jn_acnt = transformationUtils().joinTransformation(df_trans, df_dropNull, "inner",\
                       [{'parentKey':'account_id','childKey':'account_id','operator':'==','use_and':False}], ["*"], ["customer_id","account_type","balance"], True)
-                      
-  df_trans_jn_acnt.show()
+  test_dataframes_are_equal_with_exception(df_case6_expected,df_trans_jn_acnt)                   
   
-  print("action function utility")
   #case7:- Using action utility write the required dataset into the specific format into the specific target location i.e., from the target config details from the config json 
   #       check error handling and logging has been captured properly
   actionUtils.writeOutputFile(spark,df_trans_jn_acnt,tgt_config['basepath'],tgt_config['loadMode'],"DummyTransaction",tgt_config['type'],logging)
   
-  transactionProcessor.transactionProcessor(spark,configPath)
-  
-  
+  spark.stop()
+ 
   
 if __name__ == '__main__':
   testCase()
