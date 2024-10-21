@@ -1,0 +1,11 @@
+transaction_id,account_id,transaction_date,amount,transaction_type
+1,acc_01,2024-07-05,28.89,deposit
+2,acc_02,2024-01-11,35.75,withdrawal
+3,acc_03,2024-07-16,21.79,
+4,acc_04,2024-03-09,21.44,deposit
+5,acc_01,2024-07-28,87.48,withdrawal
+6,acc_02,2024-03-06,77.63,deposit
+7,acc_03,2023-10-29,32.02,deposit
+8,acc_04,2024-05-05,26.45,deposit
+9,acc_01,2024-01-08,75.04,deposit
+10,,2024-06-16,98.25,deposit

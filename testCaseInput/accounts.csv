@@ -1,0 +1,5 @@
+account_id,customer_id,account_type,balance
+acc_01,cust_01,checking,65.56
+acc_02,cust_02,checking,48.38
+acc_03,cust_01,savings,
+acc_04,,savings,47.11
