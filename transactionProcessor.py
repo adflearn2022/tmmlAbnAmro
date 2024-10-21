@@ -11,7 +11,7 @@ class transactionProcessor:
   
   def transactionProcessor(spark, configPath):
     
-    #read the configuration json
+    #read configuration details from the processor json
     config = utils.load_config(configPath)
     src_config = config['source']
     tgt_config = config['target']

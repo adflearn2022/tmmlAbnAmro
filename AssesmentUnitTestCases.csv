@@ -1,0 +1,64 @@
+Sec No,Req Id,Test Objective,Test steps,Expected Result,Actual Result,Development Status,Developer,Related Defects,Reviewed By
+1,RQ-01,Data Ingestion,"1. Load the datasets using Pandas.
+2. Convert the Pandas dataframes to Spark dataframes.
+3. Ensure the solution has proper error handling","1. Loaded the required dataset using Pandas
+2. Converted the Pd dataframe to the spark dataframe and 
+    replaced the Nan data to the null values using an generic function.
+3. Error hanlding handled and logged the error values,
+    if we will get any error while processing.","1. Loaded the required dataset using Pandas
+2. Converted the Pd dataframe to the spark dataframe and
+    replaced the Nan data to the null values using an generic function.
+3. Error hanlding handled and logged the error values,
+    if we will get any error while processing.",Done,Yuvaraj,,
+2,RQ-02,Data Transformation,"1. Clean the data by handling missing or null values.
+2. Convert date columns to datetime objects.
+3. Create a new column in the transactions dataset named `year_month` 
+    that contains the year and month of the transaction in the format 'YYYY-MM'.
+4. Merge the transactions dataset with the accounts dataset to include account details.
+5. Merge the transactions dataset with the customers dataset to include customer details.","1. Doppped the un-qualified data 
+    i.e., null values for the rows using the generic function in the code.
+2. Converteed the Data Columns to the datatime using timestamp type in all the required datasets.
+3. Derived the new 'year_month' column using withColumn function from the 'transaction_date' column and reformated into 'YYYY-MM' 
+4. Merged the transactions and account dataset using join transformation and also retrived the account details  
+5. Merged the transaction and customer dataset using the join transfomation and 
+    also retrived all the columns from the customer dataset ","1. Doppped the un-qualified data 
+    i.e., null values for the rows using the generic function in the code.
+    Also logged the total count of rows contaning null values i.e., cleared from the dataset
+2. Converted the Date Columns to the datatime using timestamp type in all the required datasets.
+3. Derived the new 'year_month' using withColumn function from 'transaction_Date' column in the transaction dataset and 
+    also reformatted the derived column into 'YYYY-MM'
+4. Merged the transaction and account dataset using the join transformation and 
+    also retrived all the columns from the account dataset by using an generic join transformation function in the processor
+5. Merged the transaction and customer dataset using the join transfomation and 
+    also retrived all the columns from the customer dataset by using an generic join transformation function in the processor",Done,Yuvaraj,,
+3,RQ-03,Data Analysis,"1. Calculate the total deposit and withdrawal amount for each account for each `year_month`.
+2. Calculate the total balance for each account type for each `year_month`.
+3. Calculate the average transaction amount per customer.","1. Calculated the total deposit an total withdrawal amount using the aggregate function in the merged transaction dataset and 
+    implement the group by using an column account_id, year_month.
+2. Calculated the total balance using an aggregate function in the merged transaction dataset and 
+    implement the group by using an column account_id and year_month
+3. Calcultated the average transaction amount using an aggregate function in the merged dataset and
+    implement the group by using an column customer_id","1. Calculated the total deposit an total withdrawal amount using the aggregate function in the merged transaction dataset and 
+    implement the group by using an column account_id, year_month.
+2. Calculated the total balance using an aggregate function in the merged transaction dataset and 
+    implement the group by using an column account_id and year_month
+3. Calcultated the average transaction amount using an aggregate function in the merged dataset and
+    implement the group by using an column customer_id",Done,Yuvaraj,,
+4,RQ-04,Data Export,1. Save the aggregated data from PySpark to delta files.,"1. Saved the aggregated data's from the pyspark to the delta files in the output folder by using the generic  and 
+     implemeted the error handling while writing as a delta file","1. Saved the aggregated data's from the pyspark to the delta files in the output folder and 
+    implemeted the error handling while writing as a delta file",Done,Yuvaraj,,
+5,RQ-5,Data Enrichment,"1. Enrich the transactions dataset by adding a new column that classifies transactions 
+  as either 'high', 'medium', or 'low' based on the transaction amount. Save the final results in a separate file.
+        1.1. 'high' if the transaction amount is greater than $1000
+        1.2. 'medium' if the transaction amount is between $500 and $1000 (inclusive)
+        1.3. 'low' if the transaction amount is less than $500
+2. Create an extra aggregation on the number of transactions per classification per week and save the results in a separate file.
+3. Show the transactions with the largest amount per classification.","1. Enriched the transaction dataset by derived the column 
+    i.e., classifies in the dataset and implemented the logic provided and saved those results in the separate delta file.
+2. Derived the number of transaction column using an aggregate function and 
+    implemented the group by using an derived weeknumber,year_month  columns and saved those results into the separate file.
+3. Done the show action for to display the largest amount per transaction classifies","1. Enriched the transaction dataset by derived the column 
+    i.e., classifies in the dataset and implemented the logic provided and saved those results in the separate delta file.
+2. Derived the number of transaction column using an aggregate function and 
+    implemented the group by using an derived weeknumber,year_month  columns and saved those results into the separate file.
+3. Done the show action for to display the largest amount per transaction classifies",Done,Yuvaraj,,

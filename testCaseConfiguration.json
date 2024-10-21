@@ -1,0 +1,15 @@
+{
+  "source": {
+    "type": "csv",
+    "basepath": "/home/user/data/testCaseInput/"
+  },
+  "target": {
+    "type": "delta",
+    "loadMode": "overwrite",
+    "basepath": "/home/user/data/testCaseOutput/"
+  },
+  "logging": {
+    "logFileName": "tmml_assessment",
+    "basepath": "/home/user/data/testCaselogging/"
+  }
+}
