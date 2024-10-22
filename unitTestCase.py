@@ -7,6 +7,7 @@ from transformationUtils import transformationUtils
 from transactionProcessor import transactionProcessor
 import pytest
 from deltalake import DeltaTable
+from pyspark.sql.functions import *
  
 
 def testCase():
@@ -68,8 +69,7 @@ def testCase():
     (5,"acc_01","2024-07-28",87.48,"withdrawal","cust_01","checking",65.56),
     (6,"acc_02","2024-03-06",77.63,"deposit","cust_02","checking",48.38),
     (9,"acc_01","2024-01-08",75.04,"deposit","cust_01","checking",65.56)], 
-    schema=["transaction_id","account_id","transaction_date","amount","transaction_type","customer_id","account_type","balance"])
-    
+    schema=["transaction_id","account_id","transaction_date","amount","transaction_type","customer_id","account_type","balance"]) 
   #case6:- Using transform joinTransformation Utility function and check datassets has been merged properly using the required parameters
   #       parameter details
   """
@@ -83,9 +83,59 @@ def testCase():
   """
   df_trans =  readUtils.readSrcAsPdAndReturnAsDf(spark,src_config['basepath'], "transactions", src_config['type'],logging)
   df_trans = transformationUtils().dropNullValuesAndReturnDf(df_trans,"account", logging)
+
   df_trans_jn_acnt = transformationUtils().joinTransformation(df_trans, df_dropNull, "inner",\
                       [{'parentKey':'account_id','childKey':'account_id','operator':'==','use_and':False}], ["*"], ["customer_id","account_type","balance"], True)
-  test_dataframes_are_equal_with_exception(df_case6_expected,df_trans_jn_acnt)                   
+  test_dataframes_are_equal_with_exception(df_case6_expected,df_trans_jn_acnt)    
+  
+  df_trans_dttime = df_trans_jn_acnt.withColumn("transaction_date", col("transaction_date").cast("timestamp"))
+  #create and format year month column in transactions
+  df_trans_frmt = df_trans_dttime.withColumn("year_month", date_format(col("transaction_date"),"yyyy-MM"))
+  df_total_wd_expected = spark.createDataFrame(
+    data=[
+      ("acc_02","2024-01",35.75),
+      ("acc_01","2024-07",87.48)
+    ],
+    schema=["account_id","year_month","total_withdraw"]
+  )
+  df_sum_wd = df_trans_frmt.filter(col("transaction_type") == lit("withdrawal")).groupBy("account_id", "year_month").agg(sum("amount").alias("total_withdraw"))
+  test_dataframes_are_equal_with_exception(df_total_wd_expected,df_sum_wd)   
+  
+  df_classifies_expected = spark.createDataFrame(data=[
+    (1,"acc_01","2024-07-05 00:00:00",28.89,"deposit","cust_01","checking",65.56,"2024-07","low"),
+    (2,"acc_02","2024-01-11 00:00:00",35.75,"withdrawal","cust_02","checking",48.38,"2024-01","low"),
+    (5,"acc_01","2024-07-28 00:00:00",87.48,"withdrawal","cust_01","checking",65.56,"2024-07","low"),
+    (6,"acc_02","2024-03-06 00:00:00",77.63,"deposit","cust_02","checking",48.38,"2024-03","low"),
+    (9,"acc_01","2024-01-08 00:00:00",75.04,"deposit","cust_01","checking",65.56,"2024-01","low")], 
+    schema=["transaction_id","account_id","transaction_date","amount","transaction_type","customer_id","account_type","balance","year_month","classifies"]) 
+  #classifies transactions as either 'high', 'medium', or 'low' based on the transaction amount
+  df_classifies = df_trans_frmt.withColumn("classifies", when(col("amount") > lit(1000), lit("high"))\
+                              .otherwise(\
+                                when((col("amount") >= lit(500)) & (col("amount") <= lit(1000)),lit("medium"))\
+                                .otherwise(\
+                                  when(col("amount") < lit(500), lit("low")).otherwise(lit("None"))
+                                  )\
+                                )\
+                              ) 
+  test_dataframes_are_equal_with_exception(df_classifies_expected,df_classifies)         
+  
+  df_weekNumber_expected = spark.createDataFrame(data=[
+    (1,"acc_01","2024-07-05 00:00:00",28.89,"deposit","cust_01","checking",65.56,"2024-07","low",1),
+    (2,"acc_02","2024-01-11 00:00:00",35.75,"withdrawal","cust_02","checking",48.38,"2024-01","low",2),
+    (5,"acc_01","2024-07-28 00:00:00",87.48,"withdrawal","cust_01","checking",65.56,"2024-07","low",4),
+    (6,"acc_02","2024-03-06 00:00:00",77.63,"deposit","cust_02","checking",48.38,"2024-03","low",2),
+    (9,"acc_01","2024-01-08 00:00:00",75.04,"deposit","cust_01","checking",65.56,"2024-01","low",2)], 
+    schema=["transaction_id","account_id","transaction_date","amount","transaction_type","customer_id","account_type","balance","year_month","classifies","week_number"])
+  df_week_number = df_classifies.withColumn("week_number", weekofyear(col("transaction_date"))- weekofyear(date_format(col("transaction_date"), "yyyy-MM-01"))+1)
+  test_dataframes_are_equal_with_exception(df_weekNumber_expected,df_week_number)  
+  
+  df_no_trans_expected = spark.createDataFrame(data=[
+    ("2024-07",1,"low",1),
+    ("2024-01",2,"low",2),
+    ("2024-07",4,"low",1),
+    ("2024-03",2,"low",1)], schema=["year_month","week_number","classifies","number_of_transactions"])  
+  df_no_of_trans = df_week_number.groupBy("year_month", "week_number", "classifies").agg(count("*").alias("number_of_transactions"))
+  test_dataframes_are_equal_with_exception(df_no_trans_expected,df_no_of_trans)
   
   #case7:- Using action utility write the required dataset into the specific format into the specific target location i.e., from the target config details from the config json 
   #       check error handling and logging has been captured properly
